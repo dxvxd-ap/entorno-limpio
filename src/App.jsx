@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { guardarReporte, obtenerReportes } from './db'
+import { guardarReporte, obtenerReportes, eliminarReporte } from './db'
 import './App.css'
 import Camara from './Camara'
 
@@ -72,6 +72,27 @@ export default function App() {
     if (!window.confirm('¿Descartar los cambios de esta edición?')) return
     limpiarFormulario()
     setMensaje('Edición cancelada. El reporte original no cambió.')
+  }
+
+  async function borrarReporte(reporte) {
+    if (cargando || guardando) return
+    if (!window.confirm(`¿Eliminar el reporte «${reporte.tipo}» y su fotografía? Esta acción no se puede deshacer.`)) return
+
+    setGuardando(true)
+    setMensaje('')
+
+    try {
+      await eliminarReporte(reporte.id)
+      setReportes((anteriores) =>
+        anteriores.filter((anterior) => anterior.id !== reporte.id),
+      )
+      if (editando?.id === reporte.id) limpiarFormulario()
+      setMensaje('Reporte eliminado de este navegador.')
+    } catch {
+      setMensaje('No se pudo eliminar el reporte. Intenta otra vez.')
+    } finally {
+      setGuardando(false)
+    }
   }
 
   function obtenerUbicacion() {
@@ -385,6 +406,15 @@ export default function App() {
                       aria-label={`Editar reporte: ${reporte.tipo}`}
                     >
                       Editar
+                    </button>
+                    <button
+                      type="button"
+                      style={{ display: 'block', marginTop: 12, background: '#a12b2b' }}
+                      disabled={cargando || guardando}
+                      onClick={() => borrarReporte(reporte)}
+                      aria-label={`Eliminar reporte: ${reporte.tipo}`}
+                    >
+                      Eliminar
                     </button>
                   </li>
                 ))}

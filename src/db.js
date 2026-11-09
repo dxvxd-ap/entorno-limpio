@@ -68,3 +68,20 @@ export async function obtenerReportes() {
         db.close()
     }
 }
+export async function eliminarReporte(id) {
+    const db = await abrirBaseDatos()
+
+    try {
+        await new Promise((resolve, reject) => {
+            const transaccion = db.transaction('reportes', 'readwrite')
+            transaccion.oncomplete = () => resolve()
+            transaccion.onerror = () => reject(transaccion.error)
+            transaccion.onabort = () => {
+                reject(transaccion.error ?? new Error('Se canceló la eliminación.'))
+            }
+            transaccion.objectStore('reportes').delete(id)
+        })
+    } finally {
+        db.close()
+    }
+}
