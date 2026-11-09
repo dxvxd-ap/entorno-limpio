@@ -15,7 +15,7 @@ Una persona detecta que el camión recolector no pasó por su calle o que existe
 
 Este proyecto es una demostración académica independiente, basada en la temática de gestión de residuos e incidencias ciudadanas.
 
-Los reportes se almacenan únicamente en el navegador donde se crean. No se envían al Ayuntamiento ni existe sincronización entre dispositivos.
+Los reportes se almacenan únicamente en el navegador donde se crean. No se envían a un servidor ni se sincronizan entre dispositivos.
 
 ## Funcionalidades
 
@@ -364,9 +364,9 @@ Los avisos de desarrollo siguen pendientes. Los resultados pueden cambiar con nu
 
 ## Limitaciones y mejoras pendientes
 
-- No hay envío de reportes al Ayuntamiento.
+- No hay envío de reportes a un servicio externo.
 - No hay sincronización entre dispositivos.
-- No existe panel administrativo ni seguimiento de atención municipal.
+- No existe panel administrativo ni seguimiento de atención de incidencias.
 - “Registrado localmente” indica guardado en el navegador, no recepción por una autoridad.
 - El mapa externo requiere internet.
 - El almacenamiento depende del espacio y las políticas del navegador.
