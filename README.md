@@ -303,7 +303,7 @@ Si se cancela la confirmación, el reporte permanece intacto. La eliminación co
 3. Confirmar la instalación.
 4. Abrir la aplicación desde el sistema operativo.
 
-La instalación se comprobó en Brave para Windows desde el dominio publicado. La disponibilidad de esta función depende del navegador y del sistema operativo.
+La instalación desde el dominio publicado se comprobó en Brave para Windows y en Chrome para Android. En Android se documentaron el diálogo de instalación, la confirmación del sistema y la apertura de la aplicación instalada. La disponibilidad de esta función depende del navegador y del sistema operativo.
 
 ## Pruebas realizadas
 
@@ -320,10 +320,12 @@ La instalación se comprobó en Brave para Windows desde el dominio publicado. L
 | Editar un reporte | Se actualiza sin aumentar el contador |
 | Eliminar un reporte | Se comprobó el funcionamiento de la eliminación |
 | Visualizar en celular | Se observa la adaptación visual de la cabecera y presentación |
+| Instalar en Chrome para Android | El sistema confirma la instalación |
+| Abrir la PWA instalada en Android | Abre sin la barra de direcciones del navegador |
 
 Las pruebas iniciales de publicación, instalación y carga offline se realizaron sobre el dominio de Vercel. La edición y eliminación se incorporaron posteriormente y deben comprobarse también en producción después de publicar esos cambios.
 
-Las pruebas funcionales principales se realizaron en escritorio. La captura móvil documenta la parte visible de la interfaz; no certifica todas las funciones del teléfono.
+Las pruebas funcionales principales se realizaron en escritorio. Las capturas móviles documentan la parte visible de la interfaz y la instalación en Android; no certifican todas las funciones del teléfono ni la pantalla de inicio (splash screen).
 
 ### Reproducir la prueba offline
 
@@ -377,6 +379,18 @@ Las coordenadas se ocultaron para evitar publicar la ubicación precisa utilizad
 ### Aplicación instalada
 
 ![Entorno Limpio abierta en una ventana independiente](docs/capturas/app-instalada.png)
+
+### Instalación en Android
+
+![Diálogo de instalación en Chrome para Android](docs/capturas/instalacion-movil.png)
+
+### Confirmación de instalación en Android
+
+![Notificación del sistema que confirma la instalación](docs/capturas/confirmacion-movil.png)
+
+### Aplicación instalada en Android
+
+![Entorno Limpio abierta en Android sin barra de direcciones](docs/capturas/app-movil-instalada.png)
 
 ## Publicación
 
