@@ -2,7 +2,7 @@
 
 Aplicación Web Progresiva (PWA) para registrar incidencias relacionadas con la recolección de residuos sólidos urbanos, incluyendo descripción, fotografía y ubicación.
 
-Permite conservar y consultar reportes localmente, incluso sin conexión después de la primera carga.
+Permite crear, consultar, editar y eliminar reportes almacenados localmente. Puede funcionar sin conexión después de una primera carga completa.
 
 ## Aplicación y repositorio
 
@@ -13,7 +13,7 @@ Permite conservar y consultar reportes localmente, incluso sin conexión despué
 
 Una persona detecta que el camión recolector no pasó por su calle o que existe basura acumulada. Puede registrar el problema, escribir una referencia del lugar, tomar una fotografía y adjuntar su ubicación actual si corresponde al punto de la incidencia.
 
-Este proyecto es una demostración académica independiente, basada en la temática de gestión de residuos e incidencias ciudadanas.
+Este proyecto es una demostración académica independiente basada en la temática de gestión de residuos e incidencias ciudadanas.
 
 Los reportes se almacenan únicamente en el navegador donde se crean. No se envían a un servidor ni se sincronizan entre dispositivos.
 
@@ -26,6 +26,10 @@ Los reportes se almacenan únicamente en el navegador donde se crean. No se env�
 - Revisar la ubicación mediante OpenStreetMap.
 - Consultar el historial de reportes.
 - Conservar reportes y fotografías al recargar.
+- Editar reportes existentes sin duplicarlos.
+- Conservar, reemplazar o quitar fotografía y ubicación al editar.
+- Cancelar una edición sin modificar el registro original.
+- Eliminar reportes con confirmación previa.
 - Cargar la aplicación sin conexión después de la primera visita completa.
 - Instalar la PWA en navegadores compatibles.
 - Adaptar la interfaz a escritorio y pantallas móviles.
@@ -35,7 +39,7 @@ Los reportes se almacenan únicamente en el navegador donde se crean. No se env�
 | Tecnología | Función |
 |---|---|
 | React | Componentes y renderizado de la interfaz |
-| Vite | Servidor de desarrollo y compilación |
+| Vite | Desarrollo y compilación |
 | CSS | Diseño y adaptación a diferentes pantallas |
 | IndexedDB | Persistencia local asíncrona |
 | MediaDevices / getUserMedia | Acceso a la cámara |
@@ -44,13 +48,13 @@ Los reportes se almacenan únicamente en el navegador donde se crean. No se env�
 | Git y GitHub | Control de versiones y alojamiento del código |
 | Vercel | Publicación HTTPS |
 
-Las versiones del proyecto están registradas en `package.json` y `package-lock.json`.
+Las versiones están registradas en `package.json` y `package-lock.json`.
 
 ## Arquitectura
 
 La aplicación utiliza renderizado del lado del cliente (CSR).
 
-Su App Shell está formado por la cabecera, la presentación y las secciones de registro e historial. React actualiza los reportes sin recargar toda la página.
+Su App Shell está formado por la cabecera, la presentación y las secciones de registro e historial. React actualiza el contenido dinámico de los reportes.
 
 El Service Worker conserva los archivos de la aplicación en Cache Storage. Los datos creados por el usuario se almacenan por separado en IndexedDB.
 
@@ -90,9 +94,9 @@ entorno-limpio/
 
 ### Responsabilidades principales
 
-- `App.jsx`: formulario, historial, geolocalización y coordinación del guardado.
+- `App.jsx`: formulario, historial, edición, eliminación y geolocalización.
 - `Camara.jsx`: solicitud de cámara, vista previa y captura.
-- `db.js`: apertura de IndexedDB, guardado y consulta de reportes.
+- `db.js`: apertura de IndexedDB y operaciones de guardado, consulta y eliminación.
 - `App.css` e `index.css`: presentación y diseño adaptable.
 - `vite.config.js`: configuración del manifiesto y Service Worker.
 - `public/icons/`: iconos PNG de instalación.
@@ -111,13 +115,15 @@ Incluye:
 - Iconos PNG de 192 × 192 y 512 × 512 píxeles.
 - Icono adaptable de 512 × 512 píxeles con propósito `maskable`.
 
-Estos metadatos permiten que los navegadores compatibles ofrezcan la instalación y utilicen la identidad visual de la aplicación. La pantalla de inicio y la experiencia de instalación dependen del navegador y del sistema operativo.
+Estos metadatos permiten que los navegadores compatibles ofrezcan la instalación y utilicen la identidad visual de la aplicación.
+
+La pantalla de inicio y la experiencia de instalación dependen del navegador y del sistema operativo.
 
 ## Service Worker y caché
 
 La compilación de producción genera `sw.js`, su registro y los archivos auxiliares de Workbox.
 
-El Service Worker administra el precaché de los archivos generados de la aplicación. Esto permite recuperar la interfaz y sus recursos después de la primera carga, aunque no haya conexión.
+El Service Worker administra el precaché de los archivos generados. Esto permite recuperar la interfaz y sus recursos después de la primera carga, aunque no haya conexión.
 
 La configuración incluye:
 
@@ -129,7 +135,7 @@ La configuración incluye:
 
 Esta versión no incluye una interfaz personalizada para avisar y aplicar actualizaciones.
 
-No existe una API remota de reportes. Por ello, la información dinámica se consulta directamente desde IndexedDB, en lugar de almacenarse en un caché de respuestas de servidor.
+No existe una API remota de reportes. La información dinámica se consulta directamente desde IndexedDB, en lugar de almacenarse en un caché de respuestas de servidor.
 
 ## Persistencia con IndexedDB
 
@@ -143,15 +149,22 @@ Cada reporte conserva:
 | `tipo` | Categoría del problema |
 | `descripcion` | Descripción de la incidencia |
 | `direccion` | Dirección o referencia |
-| `creadoEn` | Marca de tiempo para ordenar los registros |
-| `fecha` | Fecha mostrada al usuario |
-| `estado` | Registro local del reporte |
+| `creadoEn` | Marca de tiempo de creación |
+| `fecha` | Fecha de creación mostrada al usuario |
+| `estado` | Estado de registro local |
 | `ubicacion` | Coordenadas y precisión, si se adjuntan |
 | `foto` | Imagen JPEG, si se captura |
+| `actualizadoEn` | Marca de tiempo de la última edición, cuando existe |
 
-El guardado y la consulta son asíncronos. La interfaz confirma el guardado después de completar la transacción. Si ocurre un error, conserva los datos del formulario para permitir otro intento.
+Las operaciones son asíncronas:
 
-Los reportes pertenecen al navegador, perfil y origen donde fueron creados. Localhost y el dominio publicado tienen almacenamientos separados. Borrar los datos del sitio puede eliminar los registros.
+- **Guardar y editar:** se utiliza `put()`. Al conservar el mismo identificador, se actualiza el registro existente.
+- **Consultar:** se utiliza `getAll()` y se ordenan los reportes por fecha de creación.
+- **Eliminar:** se utiliza `delete()` con el identificador del reporte.
+
+La interfaz confirma las operaciones después de completar sus transacciones. Si falla el guardado, los datos permanecen en el formulario para permitir otro intento.
+
+Los reportes pertenecen al navegador, perfil y origen donde se crearon. Localhost y el dominio publicado tienen almacenamientos separados. Borrar los datos del sitio puede eliminar los registros.
 
 ## Integración de APIs del dispositivo
 
@@ -185,9 +198,9 @@ Al abrir el enlace externo, las coordenadas se incluyen en la dirección enviada
 Después de una primera carga completa y de la activación del Service Worker, es posible:
 
 - Abrir y recargar la aplicación.
-- Crear reportes.
-- Consultar los registros guardados.
-- Visualizar las fotografías almacenadas.
+- Crear y consultar reportes locales.
+- Editar y eliminar registros locales.
+- Visualizar fotografías almacenadas.
 - Capturar fotografías si el dispositivo y los permisos lo permiten.
 
 La obtención de una nueva ubicación depende del dispositivo y de su proveedor de posicionamiento; no se garantiza sin conexión.
@@ -198,7 +211,7 @@ Se necesita internet para:
 - Descargar nuevas versiones.
 - Abrir el mapa externo de OpenStreetMap.
 
-Los reportes se guardan localmente. Esta versión no incluye envío ni sincronización al recuperar la conexión.
+Esta versión no incluye envío ni sincronización de reportes al recuperar la conexión.
 
 ## Ejecutar el proyecto
 
@@ -245,6 +258,8 @@ La validación del Service Worker se realiza sobre la versión compilada o publi
 
 ## Instrucciones de uso
 
+### Crear un reporte
+
 1. Seleccionar el tipo de incidencia.
 2. Escribir la descripción.
 3. Agregar la dirección o referencia.
@@ -255,7 +270,31 @@ La validación del Service Worker se realiza sobre la versión compilada o publi
 
 **Credenciales de prueba:** no se requiere registro, cuenta ni contraseña.
 
-Para realizar pruebas se recomienda utilizar direcciones ficticias y fotografías sin información personal.
+Para las pruebas se recomienda utilizar direcciones ficticias y fotografías sin información personal.
+
+### Editar un reporte
+
+1. Localizar el reporte en “Mis reportes”.
+2. Presionar “Editar” y confirmar la apertura.
+3. Modificar los datos necesarios.
+4. Presionar “Guardar cambios”.
+
+La fotografía y ubicación existentes se conservan, salvo que se reemplacen o quiten.
+
+La actualización mantiene el identificador y la fecha de creación, registra la última edición y actualiza el registro en IndexedDB sin duplicarlo.
+
+“Cancelar edición” permite descartar los cambios del formulario, previa confirmación, sin modificar el reporte almacenado.
+
+### Eliminar un reporte
+
+1. Presionar “Eliminar” en el reporte correspondiente.
+2. Confirmar la eliminación en el diálogo.
+
+La eliminación borra el registro completo, incluida su fotografía, de IndexedDB.
+
+El historial y el contador se actualizan cuando termina correctamente la transacción. Si el reporte estaba abierto para edición, se limpia el formulario.
+
+Si se cancela la confirmación, el reporte permanece intacto. La eliminación confirmada no se puede deshacer.
 
 ## Instalación de la PWA
 
@@ -264,7 +303,7 @@ Para realizar pruebas se recomienda utilizar direcciones ficticias y fotografía
 3. Confirmar la instalación.
 4. Abrir la aplicación desde el sistema operativo.
 
-La instalación se comprobó en Brave para Windows desde el dominio publicado.
+La instalación se comprobó en Brave para Windows desde el dominio publicado. La disponibilidad de esta función depende del navegador y del sistema operativo.
 
 ## Pruebas realizadas
 
@@ -278,9 +317,13 @@ La instalación se comprobó en Brave para Windows desde el dominio publicado.
 | Recargar la versión pública en modo Offline | La aplicación y el reporte siguen disponibles |
 | Instalar desde el dominio de producción | Abre en una ventana independiente |
 | Consultar IndexedDB | Se observa el registro almacenado |
+| Editar un reporte | Se actualiza sin aumentar el contador |
+| Eliminar un reporte | Se comprobó el funcionamiento de la eliminación |
 | Visualizar en celular | Se observa la adaptación visual de la cabecera y presentación |
 
-Las pruebas funcionales principales se realizaron en Brave para escritorio. La captura móvil documenta la parte visible de la interfaz; no certifica todas las funciones del teléfono.
+Las pruebas iniciales de publicación, instalación y carga offline se realizaron sobre el dominio de Vercel. La edición y eliminación se incorporaron posteriormente y deben comprobarse también en producción después de publicar esos cambios.
+
+Las pruebas funcionales principales se realizaron en escritorio. La captura móvil documenta la parte visible de la interfaz; no certifica todas las funciones del teléfono.
 
 ### Reproducir la prueba offline
 
@@ -292,7 +335,18 @@ Las pruebas funcionales principales se realizaron en Brave para escritorio. La c
 6. Recargar normalmente.
 7. Comprobar la interfaz y los reportes almacenados.
 8. Crear otro reporte y recargar para comprobar su persistencia.
-9. Restaurar `No throttling`.
+9. Probar la edición y eliminación de un reporte desechable.
+10. Restaurar `No throttling`.
+
+### Comprobaciones de edición y eliminación
+
+- Guardar una edición sin aumentar la cantidad de reportes.
+- Recargar y verificar que los cambios se conserven.
+- Cancelar una edición y comprobar que el registro original no cambie.
+- Cancelar una eliminación y comprobar que el reporte permanezca.
+- Confirmar la eliminación de un reporte de prueba.
+- Recargar y comprobar que el reporte siga eliminado.
+- Verificar que los demás reportes permanezcan intactos.
 
 ## Evidencias
 
@@ -308,7 +362,7 @@ Las imágenes se encuentran en `docs/capturas/`.
 
 ### Persistencia en IndexedDB
 
-Las coordenadas se ocultaron en la evidencia para evitar publicar la ubicación precisa utilizada durante las pruebas.
+Las coordenadas se ocultaron para evitar publicar la ubicación precisa utilizada durante las pruebas.
 
 ![Reporte almacenado en IndexedDB con coordenadas ocultas](docs/capturas/indexeddb.png)
 
@@ -342,13 +396,17 @@ Configuración utilizada:
 
 Las funciones actuales no requieren variables de entorno.
 
+Las modificaciones locales deben guardarse en Git y subirse al repositorio para que Vercel genere una nueva publicación.
+
 ## Control de versiones
 
 El proyecto utiliza Git y un repositorio público en GitHub.
 
-La implementación funcional se incorporó en un primer commit que reúne la interfaz, IndexedDB, cámara, geolocalización y configuración PWA.
+La implementación inicial se incorporó en un primer commit que reúne la interfaz, IndexedDB, cámara, geolocalización y configuración PWA.
 
-Esto limita la evidencia del avance incremental: el historial inicial no registra por separado cada etapa de desarrollo. Los cambios posteriores de documentación y mantenimiento se registrarán conforme se realicen.
+Esto limita la evidencia del avance incremental: el historial inicial no registra por separado cada etapa de desarrollo.
+
+La documentación y las mejoras posteriores, como edición y eliminación, se registran mediante commits correspondientes a cambios reales conforme se realizan.
 
 ## Revisión de dependencias
 
@@ -367,9 +425,10 @@ Los avisos de desarrollo siguen pendientes. Los resultados pueden cambiar con nu
 - No hay envío de reportes a un servicio externo.
 - No hay sincronización entre dispositivos.
 - No existe panel administrativo ni seguimiento de atención de incidencias.
-- “Registrado localmente” indica guardado en el navegador, no recepción por una autoridad.
+- “Registrado localmente” indica guardado en el navegador.
 - El mapa externo requiere internet.
+- La eliminación es definitiva y no cuenta con papelera.
 - El almacenamiento depende del espacio y las políticas del navegador.
 - Faltan pruebas funcionales completas en móviles y otros navegadores.
 - Falta una interfaz personalizada de actualización de la PWA.
-- Pueden incorporarse edición, eliminación y exportación de reportes.
+- Puede incorporarse la exportación y el respaldo de reportes.
