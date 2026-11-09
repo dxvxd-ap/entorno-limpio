@@ -117,7 +117,7 @@ Incluye:
 
 Estos metadatos permiten que los navegadores compatibles ofrezcan la instalación y utilicen la identidad visual de la aplicación.
 
-La pantalla de inicio y la experiencia de instalación dependen del navegador y del sistema operativo.
+La pantalla de inicio y la experiencia de instalación dependen del navegador y del sistema operativo. En Android se comprobó la pantalla de inicio nativa con el icono EL y el fondo de la aplicación antes de mostrar la interfaz.
 
 ## Service Worker y caché
 
@@ -320,12 +320,15 @@ La instalación desde el dominio publicado se comprobó en Brave para Windows y 
 | Editar un reporte | Se actualiza sin aumentar el contador |
 | Eliminar un reporte | Se comprobó el funcionamiento de la eliminación |
 | Visualizar en celular | Se observa la adaptación visual de la cabecera y presentación |
+| Pantalla de inicio en Android | Se observa el icono EL antes de cargar la interfaz |
+| Actualizar a versión 1.1 | El worker nuevo se activa manualmente con `skipWaiting` y conserva los datos |
+| Recargar versión 1.1 en Offline | Se conservan la interfaz, el reporte editado y su fotografía |
 | Instalar en Chrome para Android | El sistema confirma la instalación |
 | Abrir la PWA instalada en Android | Abre sin la barra de direcciones del navegador |
 
-Las pruebas iniciales de publicación, instalación y carga offline se realizaron sobre el dominio de Vercel. La edición y eliminación se incorporaron posteriormente y deben comprobarse también en producción después de publicar esos cambios.
+Las pruebas de publicación, instalación y carga offline se realizaron sobre el dominio de Vercel. Tras publicar la versión 1.1 se observó el reporte editado, con su fotografía y fecha de última edición, conservado después de activar la actualización y recargar sin conexión. La eliminación debe validarse en producción con un reporte desechable antes de considerarla comprobada en ese entorno.
 
-Las pruebas funcionales principales se realizaron en escritorio. Las capturas móviles documentan la parte visible de la interfaz y la instalación en Android; no certifican todas las funciones del teléfono ni la pantalla de inicio (splash screen).
+Las pruebas funcionales principales se realizaron en escritorio. Las capturas móviles documentan la parte visible de la interfaz y la instalación en Android; no certifican todas las funciones del teléfono. La pantalla de inicio (splash screen) se comprobó por separado al abrir la aplicación instalada.
 
 ### Reproducir la prueba offline
 
@@ -349,6 +352,26 @@ Las pruebas funcionales principales se realizaron en escritorio. Las capturas m�
 - Confirmar la eliminación de un reporte de prueba.
 - Recargar y comprobar que el reporte siga eliminado.
 - Verificar que los demás reportes permanezcan intactos.
+
+## Validación de actualización a la versión 1.1
+
+Se publicó una modificación visible en el pie de página para identificar la versión 1.1 y comprobar la actualización del Service Worker.
+
+1. Se confirmó en Vercel la publicación de producción del commit `13d8175`.
+2. Desde las herramientas de desarrollo se solicitó la comprobación con `Update`.
+3. El worker anterior permaneció activo mientras el nuevo quedó en `waiting to activate`.
+4. Se activó manualmente el worker nuevo con `skipWaiting` desde las herramientas de desarrollo.
+5. Después de recargar, el worker nuevo apareció activado y el pie mostró “Versión 1.1”.
+6. El reporte y la fotografía se conservaron en IndexedDB.
+7. Con `Offline` seleccionado, se recargó y se comprobó que la versión 1.1 y el reporte editado siguieran disponibles.
+
+La prueba demuestra descarga, espera, activación manual y carga offline de la nueva versión conservando datos. No demuestra la activación automática al cerrar todos los clientes ni un aviso de actualización dentro de la aplicación.
+
+## Validación de instalación y pantalla de inicio en Android
+
+Se comprobó la instalación desde Chrome, la confirmación del sistema, la apertura sin barra de direcciones y la presencia de Entorno Limpio en la información de aplicaciones de Android.
+
+Al abrir la aplicación instalada se observó la pantalla de inicio nativa con el icono EL sobre el fondo de la aplicación. No se agregó una pantalla artificial dentro de React para simular este comportamiento.
 
 ## Evidencias
 
@@ -391,6 +414,22 @@ Las coordenadas se ocultaron para evitar publicar la ubicación precisa utilizad
 ### Aplicación instalada en Android
 
 ![Entorno Limpio abierta en Android sin barra de direcciones](docs/capturas/app-movil-instalada.png)
+
+### Pantalla de inicio móvil
+
+![Pantalla de inicio nativa con icono EL en Android](docs/capturas/splash-movil.png)
+
+### Información de la aplicación en Android
+
+![Entorno Limpio reconocida como aplicación instalada desde Chrome](docs/capturas/informacion-app-android.png)
+
+### Service Worker actualizado
+
+![Nuevo Service Worker activado y versión 1.1 con datos conservados](docs/capturas/service-worker-actualizado.png)
+
+### Versión 1.1 sin conexión
+
+![Versión 1.1 cargada en modo Offline con el reporte y su fotografía](docs/capturas/version-1.1-offline.png)
 
 ## Publicación
 
