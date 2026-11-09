@@ -106,7 +106,7 @@ export default function Camara({ foto, onFoto, bloqueada }) {
             contexto.drawImage(video, 0, 0, canvas.width, canvas.height)
             onFoto(canvas.toDataURL('image/jpeg', 0.8))
             cerrarCamara()
-            setMensaje('Foto capturada. Se guardará cuando crees el reporte.')
+            setMensaje('Foto capturada. Se guardará al guardar el reporte.')
         } catch {
             setMensaje('No se pudo capturar la foto. Intenta otra vez.')
         }

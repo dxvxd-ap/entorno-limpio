@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { guardarReporte, obtenerReportes } from './db'
 import './App.css'
 import Camara from './Camara'
 
 export default function App() {
+  const formularioRef = useRef(null)
+  const descripcionRef = useRef(null)
+  const solicitudUbicacionRef = useRef(0)
+  const [editando, setEditando] = useState(null)
   const [reportes, setReportes] = useState([])
   const [mensaje, setMensaje] = useState('')
   const [cargando, setCargando] = useState(true)
@@ -37,7 +41,42 @@ export default function App() {
     }
   }, [])
 
+  function limpiarFormulario() {
+    solicitudUbicacionRef.current += 1
+    setLocalizando(false)
+    formularioRef.current?.reset()
+    setEditando(null)
+    setFoto(null)
+    setUbicacion(null)
+    setMensajeUbicacion('')
+    setVersionCamara((version) => version + 1)
+  }
+
+  function editarReporte(reporte) {
+    if (guardando || cargando) return
+    if (!window.confirm('¿Editar este reporte? Se reemplazará cualquier cambio sin guardar del formulario.')) return
+
+    limpiarFormulario()
+    setEditando(reporte)
+    const campos = formularioRef.current.elements
+    campos.namedItem('tipo').value = reporte.tipo
+    campos.namedItem('descripcion').value = reporte.descripcion
+    campos.namedItem('direccion').value = reporte.direccion
+    setFoto(reporte.foto ?? null)
+    setUbicacion(reporte.ubicacion ?? null)
+    setMensaje('Editando reporte. Los cambios se aplicarán al guardar.')
+    descripcionRef.current?.focus()
+  }
+
+  function cancelarEdicion() {
+    if (!window.confirm('¿Descartar los cambios de esta edición?')) return
+    limpiarFormulario()
+    setMensaje('Edición cancelada. El reporte original no cambió.')
+  }
+
   function obtenerUbicacion() {
+    if (guardando || localizando) return
+    const solicitud = ++solicitudUbicacionRef.current
     if (!navigator.geolocation) {
       setMensajeUbicacion(
         'Tu navegador no admite geolocalización. Escribe la dirección del problema.',
@@ -50,6 +89,7 @@ export default function App() {
 
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
+        if (solicitud !== solicitudUbicacionRef.current) return
         setUbicacion({
           latitud: coords.latitude,
           longitud: coords.longitude,
@@ -62,6 +102,7 @@ export default function App() {
         setLocalizando(false)
       },
       (error) => {
+        if (solicitud !== solicitudUbicacionRef.current) return
         const mensajes = {
           1: 'No concediste permiso de ubicación. Puedes escribir la dirección.',
           2: 'No fue posible determinar tu ubicación. Intenta otra vez.',
@@ -84,7 +125,7 @@ export default function App() {
   async function crearReporte(evento) {
     evento.preventDefault()
 
-    if (cargando || guardando) return
+    if (cargando || guardando || localizando) return
 
     const formulario = evento.currentTarget
     const datos = new FormData(formulario)
@@ -96,17 +137,19 @@ export default function App() {
       return
     }
 
-    const creadoEn = Date.now()
+    const creadoEn = editando?.creadoEn ?? Date.now()
 
     const reporte = {
-      id: crypto.randomUUID(),
+      ...editando,
+      id: editando?.id ?? crypto.randomUUID(),
       tipo: datos.get('tipo'),
       descripcion,
       direccion,
       ubicacion,
       foto,
       creadoEn,
-      fecha: new Date(creadoEn).toLocaleString('es-MX'),
+      fecha: editando?.fecha ?? new Date(creadoEn).toLocaleString('es-MX'),
+      ...(editando ? { actualizadoEn: Date.now() } : {}),
       estado: 'Registrado localmente',
     }
 
@@ -116,13 +159,17 @@ export default function App() {
     try {
       await guardarReporte(reporte)
 
-      setReportes((anteriores) => [reporte, ...anteriores])
-      formulario.reset()
-      setFoto(null)
-      setVersionCamara((version) => version + 1)
-      setUbicacion(null)
-      setMensajeUbicacion('')
-      setMensaje('Reporte guardado en este navegador.')
+      setReportes((anteriores) =>
+        editando
+          ? anteriores.map((anterior) =>
+            anterior.id === reporte.id ? reporte : anterior,
+          )
+          : [reporte, ...anteriores],
+      )
+      limpiarFormulario()
+      setMensaje(editando
+        ? 'Cambios guardados en este navegador.'
+        : 'Reporte guardado en este navegador.')
     } catch {
       setMensaje(
         'No se pudo guardar el reporte. Tus datos siguen en el formulario; intenta otra vez.',
@@ -157,105 +204,118 @@ export default function App() {
 
         <div className="columnas">
           <section className="panel" aria-labelledby="titulo-formulario">
-            <span className="etiqueta">NUEVO REPORTE</span>
-            <h2 id="titulo-formulario">¿Qué está pasando?</h2>
+            <span className="etiqueta">{editando ? 'EDITAR REPORTE' : 'NUEVO REPORTE'}</span>
+            <h2 id="titulo-formulario">{editando ? 'Actualiza tu reporte' : '¿Qué está pasando?'}</h2>
             <p className="secundario">
               Cuéntanos qué ocurrió y dónde se encuentra el problema.
             </p>
 
-            <form onSubmit={crearReporte}>
-              <label htmlFor="tipo">Tipo de problema</label>
-              <select id="tipo" name="tipo">
-                <option>No pasó el camión</option>
-                <option>Basura acumulada</option>
-                <option>Recolección incompleta</option>
-                <option>Otro problema de recolección</option>
-              </select>
+            <form ref={formularioRef} onSubmit={crearReporte}>
+              <fieldset disabled={cargando || guardando} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                <label htmlFor="tipo">Tipo de problema</label>
+                <select id="tipo" name="tipo">
+                  <option>No pasó el camión</option>
+                  <option>Basura acumulada</option>
+                  <option>Recolección incompleta</option>
+                  <option>Otro problema de recolección</option>
+                </select>
 
-              <label htmlFor="descripcion">Descripción</label>
-              <textarea
-                id="descripcion"
-                name="descripcion"
-                placeholder="Por ejemplo: el camión no pasó y quedaron bolsas en la esquina."
-                rows={4}
-                maxLength={1000}
-                required
-              />
+                <label htmlFor="descripcion">Descripción</label>
+                <textarea
+                  ref={descripcionRef}
+                  id="descripcion"
+                  name="descripcion"
+                  placeholder="Por ejemplo: el camión no pasó y quedaron bolsas en la esquina."
+                  rows={4}
+                  maxLength={1000}
+                  required
+                />
 
-              <label htmlFor="direccion">Dirección o referencia</label>
-              <input
-                id="direccion"
-                name="direccion"
-                placeholder="Calle, colonia y un punto de referencia"
-                maxLength={250}
-                required
-              />
+                <label htmlFor="direccion">Dirección o referencia</label>
+                <input
+                  id="direccion"
+                  name="direccion"
+                  placeholder="Calle, colonia y un punto de referencia"
+                  maxLength={250}
+                  required
+                />
 
-              <Camara
-                key={versionCamara}
-                foto={foto}
-                onFoto={setFoto}
-                bloqueada={cargando || guardando}
-              />
+                <Camara
+                  key={versionCamara}
+                  foto={foto}
+                  onFoto={setFoto}
+                  bloqueada={cargando || guardando}
+                />
 
-              <div className="bloque-ubicacion">
-                <button
-                  type="button"
-                  disabled={localizando || guardando}
-                  onClick={obtenerUbicacion}
-                >
-                  {localizando ? 'Obteniendo ubicación…' : 'Usar mi ubicación actual'}
+                <div className="bloque-ubicacion">
+                  <button
+                    type="button"
+                    disabled={localizando || guardando}
+                    onClick={obtenerUbicacion}
+                  >
+                    {localizando ? 'Obteniendo ubicación…' : 'Usar mi ubicación actual'}
+                  </button>
+
+                  <p className="secundario">
+                    Úsala solamente si estás en el lugar del problema.
+                    La dirección escrita también se guardará.
+                  </p>
+
+                  <p className="mensaje" role="status">
+                    {mensajeUbicacion}
+                  </p>
+
+                  {ubicacion && (
+                    <div>
+                      <p className="secundario">
+                        Latitud: {ubicacion.latitud.toFixed(6)}
+                        <br />
+                        Longitud: {ubicacion.longitud.toFixed(6)}
+                        <br />
+                        Precisión aproximada: {Math.round(ubicacion.precision)} metros
+                      </p>
+
+                      <a
+                        href={`https://www.openstreetmap.org/?mlat=${ubicacion.latitud}&mlon=${ubicacion.longitud}#map=17/${ubicacion.latitud}/${ubicacion.longitud}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Revisar ubicación en el mapa
+                      </a>
+
+                      <button
+                        type="button"
+                        className="quitar-ubicacion"
+                        disabled={guardando}
+                        onClick={() => {
+                          setUbicacion(null)
+                          setMensajeUbicacion('Ubicación eliminada del formulario.')
+                        }}
+                      >
+                        Quitar ubicación
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <button type="submit" disabled={cargando || guardando || localizando}>
+                  {cargando
+                    ? 'Cargando reportes…'
+                    : guardando
+                      ? 'Guardando…'
+                      : editando ? 'Guardar cambios' : 'Crear reporte'}
                 </button>
-
-                <p className="secundario">
-                  Úsala solamente si estás en el lugar del problema.
-                  La dirección escrita también se guardará.
-                </p>
-
-                <p className="mensaje" role="status">
-                  {mensajeUbicacion}
-                </p>
-
-                {ubicacion && (
-                  <div>
-                    <p className="secundario">
-                      Latitud: {ubicacion.latitud.toFixed(6)}
-                      <br />
-                      Longitud: {ubicacion.longitud.toFixed(6)}
-                      <br />
-                      Precisión aproximada: {Math.round(ubicacion.precision)} metros
-                    </p>
-
-                    <a
-                      href={`https://www.openstreetmap.org/?mlat=${ubicacion.latitud}&mlon=${ubicacion.longitud}#map=17/${ubicacion.latitud}/${ubicacion.longitud}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Revisar ubicación en el mapa
-                    </a>
-
-                    <button
-                      type="button"
-                      className="quitar-ubicacion"
-                      disabled={guardando}
-                      onClick={() => {
-                        setUbicacion(null)
-                        setMensajeUbicacion('Ubicación eliminada del formulario.')
-                      }}
-                    >
-                      Quitar ubicación
-                    </button>
-                  </div>
+                {editando && (
+                  <button
+                    type="button"
+                    className="boton-secundario"
+                    style={{ marginTop: 12 }}
+                    onClick={cancelarEdicion}
+                  >
+                    Cancelar edición
+                  </button>
                 )}
-              </div>
-
-              <button type="submit" disabled={cargando || guardando || localizando}>
-                {cargando
-                  ? 'Cargando reportes…'
-                  : guardando
-                    ? 'Guardando…'
-                    : 'Crear reporte'}
-              </button>
+              </fieldset>
               <p className="mensaje" role="status">{mensaje}</p>
             </form>
           </section>
@@ -312,6 +372,20 @@ export default function App() {
                       </p>
                     )}
                     <time>{reporte.fecha}</time>
+                    {reporte.actualizadoEn && (
+                      <p className="secundario">
+                        Última edición: {new Date(reporte.actualizadoEn).toLocaleString('es-MX')}
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      style={{ display: 'block', marginTop: 16 }}
+                      disabled={cargando || guardando}
+                      onClick={() => editarReporte(reporte)}
+                      aria-label={`Editar reporte: ${reporte.tipo}`}
+                    >
+                      Editar
+                    </button>
                   </li>
                 ))}
               </ul>
