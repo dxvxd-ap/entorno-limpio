@@ -424,7 +424,9 @@ export default function App() {
         </div>
       </main>
 
-      <footer>Entorno Limpio · Cuidemos el lugar donde vivimos.</footer>
+      <footer>
+        Entorno Limpio · Versión 1.1 · Cuidemos el lugar donde vivimos.
+      </footer>
     </div>
   )
 }
