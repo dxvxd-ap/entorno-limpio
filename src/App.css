@@ -1,0 +1,426 @@
+.app {
+  max-width: 1160px;
+  margin: auto;
+  padding: 0 28px;
+}
+
+.cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 0;
+  border-bottom: 1px solid #dce5df;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.simbolo {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: #176b4c;
+  color: white;
+  font-size: 15px;
+}
+
+.enlace {
+  font-size: 14px;
+  font-weight: 650;
+  text-underline-offset: 4px;
+}
+
+.presentacion {
+  max-width: 760px;
+  padding: 60px 0 36px;
+}
+
+.etiqueta {
+  color: #426b59;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+}
+
+h1 {
+  margin: 16px 0;
+  font-size: clamp(34px, 5vw, 54px);
+  line-height: 1.12;
+  letter-spacing: -1.8px;
+}
+
+.presentacion>p {
+  max-width: 600px;
+  color: #52685f;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.aviso {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #e7eee8;
+  color: #405b4c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.columnas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.panel {
+  min-width: 0;
+  padding: 30px;
+  border: 1px solid #dce5df;
+  border-radius: 20px;
+  background: white;
+}
+
+h2 {
+  margin: 8px 0 10px;
+  font-size: 25px;
+  letter-spacing: -0.6px;
+}
+
+.secundario {
+  color: #64746d;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+}
+
+label {
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 20px;
+  padding: 13px 14px;
+  border: 1px solid #cbd8d0;
+  border-radius: 10px;
+  background: #fbfcfb;
+  color: #183b32;
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  min-height: 48px;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: #176b4c;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #105439;
+}
+
+.mensaje {
+  margin-bottom: 0;
+  color: #355c49;
+  font-size: 14px;
+}
+
+.mensaje:empty {
+  display: none;
+}
+
+.titulo-lista {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.contador {
+  display: grid;
+  place-items: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 10px;
+  border-radius: 12px;
+  background: #eaf3ed;
+  font-weight: 750;
+}
+
+.vacio {
+  margin-top: 24px;
+  padding: 48px 20px;
+  border: 1px dashed #cbd8d0;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.vacio h3 {
+  margin: 0 0 10px;
+  font-size: 17px;
+}
+
+.vacio p {
+  margin: 0;
+  color: #64746d;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.lista {
+  display: grid;
+  gap: 16px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reporte {
+  padding: 20px;
+  border: 1px solid #dce5df;
+  border-radius: 14px;
+  overflow-wrap: anywhere;
+}
+
+.estado {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #edf3e6;
+  color: #45602d;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.reporte h3 {
+  margin: 12px 0 8px;
+  font-size: 17px;
+}
+
+.reporte p {
+  color: #52685f;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.descripcion {
+  white-space: pre-wrap;
+}
+
+.reporte time {
+  color: #64746d;
+  font-size: 12px;
+}
+
+footer {
+  padding: 32px 0;
+  color: #64746d;
+  font-size: 13px;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .app {
+    padding: 0 18px;
+  }
+
+  .columnas {
+    grid-template-columns: 1fr;
+  }
+
+  .presentacion {
+    padding-top: 38px;
+  }
+
+  .panel {
+    padding: 22px;
+  }
+
+  .marca {
+    font-size: 17px;
+  }
+
+  .bloque-ubicacion {
+    margin-bottom: 24px;
+    padding: 16px;
+    border: 1px solid #dce5df;
+    border-radius: 12px;
+    background: #f4f7f5;
+  }
+
+  .bloque-ubicacion>button {
+    width: 100%;
+  }
+
+  .quitar-ubicacion {
+    display: block;
+    margin-top: 16px;
+    background: #405b4c;
+  }
+
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .bloque-camara {
+    margin-bottom: 24px;
+    padding: 16px;
+    border: 1px solid #dce5df;
+    border-radius: 12px;
+    background: #f4f7f5;
+  }
+
+  .bloque-camara h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+
+  .bloque-camara button {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .bloque-camara video,
+  .foto-reporte {
+    display: block;
+    width: 100%;
+    max-height: 360px;
+    margin: 14px 0;
+    border-radius: 10px;
+    background: #e7eee8;
+    object-fit: contain;
+  }
+
+  .boton-secundario {
+    background: #405b4c;
+  }
+
+}
+
+
+/* Distribución de las columnas */
+.columnas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.columnas>*,
+.panel,
+.lista,
+.reporte {
+  min-width: 0;
+}
+
+.lista {
+  width: 100%;
+}
+
+.reporte {
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* Fotografías y vista previa */
+.reporte img,
+.bloque-camara img,
+.bloque-camara video {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 280px;
+  margin: 16px 0;
+  border-radius: 12px;
+  object-fit: contain;
+  background: #edf2ee;
+}
+
+/* Secciones del formulario */
+.bloque-camara,
+.bloque-ubicacion {
+  width: 100%;
+  margin: 0 0 24px;
+  padding: 18px;
+  border: 1px solid #dce5df;
+  border-radius: 14px;
+  background: #f7faf8;
+}
+
+.bloque-camara h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.bloque-camara button,
+.bloque-ubicacion button {
+  display: block;
+  width: 100%;
+  margin: 12px 0 0;
+}
+
+.bloque-camara .secundario,
+.bloque-ubicacion .secundario {
+  margin: 10px 0;
+}
+
+.bloque-camara .mensaje,
+.bloque-ubicacion .mensaje {
+  line-height: 1.5;
+}
+
+.boton-secundario,
+.quitar-ubicacion {
+  background: #405b4c;
+}
+
+form>button[type="submit"] {
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* Adaptación a pantallas pequeñas */
+@media (max-width: 760px) {
+  .columnas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel {
+    padding: 20px;
+  }
+
+  .bloque-camara,
+  .bloque-ubicacion {
+    padding: 14px;
+  }
+}
